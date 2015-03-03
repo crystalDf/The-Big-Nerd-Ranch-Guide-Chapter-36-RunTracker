@@ -259,7 +259,6 @@ public class RunListFragment extends ListFragment {
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
             RunCursorAdapter adapter = new RunCursorAdapter(getActivity(), (RunDatabaseHelper.RunCursor) data);
             setListAdapter(adapter);
-            System.out.println("hahaha: onLoadFinished done");
         }
 
         @Override

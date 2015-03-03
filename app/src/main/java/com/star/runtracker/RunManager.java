@@ -134,10 +134,6 @@ public class RunManager {
         return mRunDatabaseHelper.deleteRun(runId);
     }
 
-    private int deleteLocation(long runId) {
-        return mRunDatabaseHelper.deleteLocation(runId);
-    }
-
     public RunDatabaseHelper.RunCursor queryRuns() {
         return mRunDatabaseHelper.queryRuns();
     }
@@ -163,6 +159,14 @@ public class RunManager {
         } else {
             Log.e(TAG, "Location received with no tracking run; ignoring.");
         }
+    }
+
+    private int deleteLocation(long runId) {
+        return mRunDatabaseHelper.deleteLocation(runId);
+    }
+
+    public RunDatabaseHelper.LocationCursor queryLocationsForRun(long runId) {
+        return mRunDatabaseHelper.queryLocationsForRun(runId);
     }
 
     public Location getLastLocationForRun(long runId) {
