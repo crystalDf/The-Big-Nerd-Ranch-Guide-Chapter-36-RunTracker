@@ -1,10 +1,11 @@
 package com.star.runtracker;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.Camera;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
@@ -13,6 +14,7 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -33,16 +35,12 @@ public class RunMapFragment extends SupportMapFragment {
 
     private GoogleMap mGoogleMap;
     private RunDatabaseHelper.LocationCursor mLocationCursor;
+    private RunManager mRunManager;
+    private Run mRun;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-//        long runId = getActivity().getIntent().getLongExtra(RunFragment.EXTRA_RUN_ID, 0);
-//
-//        if (runId != 0) {
-//            getLoaderManager().initLoader(LOAD_LOCATIONS, null, mLoaderCallbacks);
-//        }
     }
 
     @Override
@@ -164,4 +162,44 @@ public class RunMapFragment extends SupportMapFragment {
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
         return sdf.format(date);
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getActivity().registerReceiver(mLocationReceiver,
+                new IntentFilter(RunManager.ACTION_LOCATION));
+    }
+
+    @Override
+    public void onStop() {
+        getActivity().unregisterReceiver(mLocationReceiver);
+        super.onStop();
+    }
+
+    private BroadcastReceiver mLocationReceiver = new LocationReceiver() {
+        @Override
+        protected void onLocationReceived(Context context, Location location) {
+
+            mRunManager = RunManager.getInstance(getActivity());
+
+            long runId = getActivity().getIntent().getLongExtra(RunFragment.EXTRA_RUN_ID, 0);
+
+            mRun = mRunManager.getRun(runId);
+
+            if (!mRunManager.isTrackingRun(mRun)) {
+                return;
+            }
+
+            if (isVisible()) {
+                mGoogleMap.clear();
+                getLoaderManager().restartLoader(LOAD_LOCATIONS, null, mLoaderCallbacks);
+            }
+        }
+
+        @Override
+        protected void onProviderEnabledChanged(boolean enabled) {
+            int toastText = enabled ? R.string.gps_enabled : R.string.gps_disabled;
+            Toast.makeText(getActivity(), toastText, Toast.LENGTH_LONG).show();
+        }
+    };
 }
